@@ -2,168 +2,209 @@
 #include<stdio.h>
 #include<math.h>
 #include<stdlib.h>
-#include<math.h>
-typedef struct node
+struct node
 {
-int expo,coef;
-struct node *next;
-}node;
-/FUNCTION PROTOTYPE/
-node * insert(node *,int,int);
-node * create();
-node * add(node *p1,node *p2);
-int eval(node *p1);
-void display(node *head);
-node *insert(node*head,int expo1,int coef1)
+int cf, px, py, pz;
+int flag;
+struct node *link;
+};
+typedef struct node NODE;
+NODE* getnode()
 {
- node *p,*q;
- p=(node *)malloc(sizeof(node));
- p->expo=expo1;
- p->coef=coef1;
- p->next=NULL;
-if(head==NULL)
- {
- head=p;
- head->next=head;
- return(head);
- }
-
-if(expo1>head->expo)
- {
- p->next=head->next;
- head->next=p;
- head=p;
- return(head);
- }
-if(expo1==head->expo)
- {
- head->coef=head->coef+coef1; 
-return(head);
- }
- q=head;
-while(q->next!=head&&expo1>=q->next->expo)
- q=q->next;
-if(p->expo==q->expo)
- q->coef=q->coef+coef1;
+NODE *x;
+x = (NODE*)malloc(sizeof(NODE));
+if(x == NULL)
+{
+printf("Insufficient memory\n");
+exit(0);
+}
+return x;
+}
+void display(NODE *head)
+{
+NODE *temp;
+if(head->link == head)
+{
+printf("Polynomial does not exist\n");
+return;
+}
+temp = head->link;
+printf("\n");
+while(temp != head)
+{
+printf("%d x^%d y^%d z^%d",temp->cf,temp->px,temp->py,temp->pz);
+if(temp->link != head)
+printf(" + ");
+temp = temp->link;
+}
+printf("\n");
+}
+NODE* insert_rear(int cf,int x,int y,int z,NODE *head)
+{
+NODE *temp, *cur;
+temp = getnode();
+temp->cf = cf;
+temp->px = x;
+temp->py = y;
+temp->pz = z;
+cur = head->link;
+while(cur->link != head)
+cur = cur->link;
+cur->link = temp;
+temp->link = head;
+return head;
+}
+NODE* read_poly(NODE *head)
+{
+int px, py, pz, cf, ch;
+printf("\nEnter coeff: ");
+scanf("%d",&cf);
+printf("\nEnter x, y, z powers(0-indiacate NO term): ");
+scanf("%d%d%d", &px, &py, &pz);
+head = insert_rear(cf,px,py,pz,head);
+printf("\nIf you wish to continue press 1 otherwise 0: ");
+scanf("%d", &ch);
+while(ch != 0)
+{
+    printf("\nEnter coeff: ");
+scanf("%d",&cf);
+printf("\nEnter x, y, z powers(0-indiacate NO term): ");
+scanf("%d%d%d",&px, &py, &pz);
+head = insert_rear(cf,px,py,pz,head);
+printf("\nIf you wish to continue press 1 otherwise 0: ");
+scanf("%d", &ch);
+}
+return head;
+}
+NODE* add_poly(NODE *h1,NODE *h2,NODE *h3)
+{
+NODE *p1, *p2;
+int cf;
+p1 = h1->link;
+while(p1 != h1)
+{
+p2=h2->link;
+while(p2 != h2)
+{
+if(p1->px == p2->px && p1->py == p2->py && p1->pz == p2->pz)
+break;
+p2 = p2->link;
+}
+if(p2 != h2)
+{
+cf = p1->cf + p2->cf;
+p2->flag = 1;
+if(cf != 0)
+h3 = insert_rear(cf,p1->px,p1->py,p1->pz,h3);
+}
 else
- {
- p->next=q->next;
- q->next=p;
- }
-return(head);
+h3 = insert_rear(p1->cf,p1->px,p1->py,p1->pz,h3);
+p1 = p1->link;
 }
-node *create()
+p2 = h2->link;
+while(p2 != h2)
 {
-int n,i,expo1,coef1;
- node *head=NULL;
- printf("\n\nEnter no of terms of polynomial==>");
- scanf("%d",&n);
-for(i=0;i<n;i++)
- {
- printf("\n\nEnter coef & expo==>");
- scanf("%d%d",&coef1,&expo1);
- head=insert(head,expo1,coef1);
- }
-return(head);
+if(p2->flag == 0)
+h3 = insert_rear(p2->cf,p2->px,p2->py,p2->pz,h3);
+p2 = p2->link;
 }
-node *add(node *p1,node *p2)
-{
- node *p;
- node *head=NULL;
- printf("\n\n\nAddition of polynomial==>");
- p=p1->next;
-do
- {
- head=insert(head,p->expo,p->coef);
- p=p->next;
- }while(p!=p1->next);
- p=p2->next;
-do
- { 
-head=insert(head,p->expo,p->coef);
- p=p->next;
- }while(p!=p2->next);
-return(head);
+return h3;
 }
-int eval(node *head)
+void evaluate(NODE *head)
 {
- node *p;
-int x,ans=0;
- printf("\n\nEnter the value of x=");
- scanf("%d",&x);
- p=head->next;
-do
- {
- ans=ans+p->coef*pow(x,p->expo);
- p=p->next;
- }while(p!=head->next);
-return(ans);
+NODE *h1=head->link;
+int x, y, z;
+float result = 0.0;
+printf("\nEnter x, y, z, terms to evaluate:\n");
+scanf("%d%d%d", &x, &y, &z);
+while(h1 != head)
+{
+result = result + (h1->cf * pow(x,h1->px) * pow(y,h1->py) * pow(z,h1->pz));
+h1 = h1->link;
 }
-void display(node *head)
-{
- node *p,*q;
-int n=0;
- q=head->next;
- p=head->next;
-do
- {
- n++;
- q=q->next;
- }while(q!=head->next);
- printf("\n\n\tThe polynomial is==>");
-
-do
- {
- if(n-1)
- {
- printf("%dx^(%d) + ",p->coef,p->expo);
- p=p->next;
- }
- else
- { 
-printf(" %dx^(%d)",p->coef,p->expo);
- p=p->next;
- }
- n--;
- } while(p!=head->next);
+printf("\nPolynomial result is: %f", result);
 }
 void main()
 {
-int a,x,ch;
- node *p1,*p2,*p3;
- p1=p2=p3=NULL;
+NODE *h1, *h2, *h3, *eval;
+int ch;
 while(1)
- {
- printf("\n\t----------------<< MENU >>---------------");
- printf("\n\tPolynomial Operations :");
- printf(" 1.Add");
- printf("\n\t\t\t\t2.Evaluate");
- printf("\n\t\t\t\t3.Exit");
- printf("\n\t------------------------------------------- ");
- printf("\n\n\n\tEnter your choice==>");
- scanf("%d",&ch);
- switch(ch)
- {
- case 1 :
- p1=create();
- display(p1);
- p2=create();
- display(p2);
- p3=add(p1,p2);
- display(p3);
- break;
- case 2 :
- p1=create();
- display(p1);
- a=eval(p1);
- printf("\n\nValue of polynomial=%d",a);
- break;
- case 3 :
- exit(0);
- break;
- default :
- printf("\n\n\t invalid choice");
- break;
- }
+{
+eval = getnode();
+h1 = getnode();
+h2 = getnode();
+h3 = getnode();
+eval->link = eval;
+h1->link = h1;
+h2->link = h2;
+h3->link = h3;
+printf("\n\n1.Evaluate polynomial\n2.Add two polynomials\n3.Exit\n");
+printf("Enter your choice: ");
+scanf("%d", &ch);
+switch(ch)
+{
+case 1: printf("\nEnter polynomial to evaluate:\n");
+eval = read_poly(eval);
+display(eval);
+evaluate(eval);
+free(eval);
+break;
+case 2: printf("\nEnter the first polynomial: ");
+h1 = read_poly(h1);
+printf("Flag = %d\n",h1->flag);
+printf("\nEnter the second polynomial: ");
+h2 = read_poly(h2);
+h3 = add_poly(h1,h2,h3);
+printf("\nFirst polynomial is: ");
+display(h1);
+printf("\nSecond polynomial is: ");
+display(h2);
+printf("\nThe sum of 2 polynomials is: ");
+display(h3);
+free(h1); 
+free(h2);
+free(h3);
+break;
+case 3: exit(0);
+break;
+default:printf("\nInvalid entry");
 }
 }
+}
+
+
+OUTPUT:
+1.Evaluate polynomial
+2.Add two polynomials
+3.Exit
+Enter your choice: 1
+Enter polynomial to evaluate:
+Enter coeff: 2
+Enter x, y, z powers(0
+-indiacate NO term): 1 1 1
+If you wish to continue press 1 otherwise 0: 0
+2 x^1 y^1 z^1
+Enter x, y, z, terms to evaluate:
+1 1 1
+Polynomial result is: 2.000000
+
+1.Evaluate polynomial
+2.Add two polynomials
+3.Exit
+Enter your choice: 2
+Enter the first polynomial:
+Enter coeff: 2
+Enter x, y, z powers(0
+-indiacate NO term): 1 1 1
+If you wish to continue press 1 otherwise 0: 0
+Flag = 0
+Enter the second polynomial:
+Enter coeff: 4
+Enter x, y, z powers(0
+-indiacate NO term): 1 1 1
+If you wish to continue press 1 otherwise 0: 0
+First polynomial is:
+2 x^1 y^1 z^1
+Second polynomial is:
+4 x^1 y^1 z^1
+The sum of 2 polynomials is:
